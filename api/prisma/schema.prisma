@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model MarketMapping {
+  id                    String   @id @default(cuid())
+  slug                  String   @unique
+  question              String
+  category              String   @default("other")
+  polymarketConditionId String
+  polymarketTokenIdYes  String
+  polymarketTokenIdNo   String
+  kalshiEventTicker     String
+  kalshiMarketTicker    String
+  expiryDate            String
+  active                Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([active])
+  @@index([category])
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  userId        String
+  exchange      String   // 'polymarket' | 'kalshi'
+  exchangeOrderId String?
+  marketId      String
+  slug          String
+  question      String   @default("")
+  side          String   // 'YES' | 'NO'
+  orderType     String   // 'LIMIT' | 'MARKET' | 'POST_ONLY'
+  price         Float?
+  size          Float
+  filledSize    Float    @default(0)
+  remainingSize Float?
+  filledPrice   Float?
+  fees          Float?
+  status        String   @default("OPEN") // 'OPEN' | 'FILLED' | 'CANCELLED' | 'FAILED'
+  arbOrderId    String?  // links both legs of an arb trade
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([slug])
+  @@index([arbOrderId])
+}
+
+model Position {
+  id              String    @id @default(cuid())
+  userId          String
+  exchange        String
+  marketId        String
+  slug            String
+  question        String    @default("")
+  side            String    // 'YES' | 'NO'
+  shares          Float
+  avgEntryPrice   Float
+  currentPrice    Float     @default(0)
+  cost            Float
+  currentValue    Float     @default(0)
+  unrealizedPnl   Float     @default(0)
+  unrealizedPnlPct Float    @default(0)
+  status          String    @default("OPEN") // 'OPEN' | 'CLOSED' | 'RESOLVED'
+  resolvedValue   Float?
+  openedAt        DateTime  @default(now())
+  closedAt        DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([slug])
+  @@index([status])
+}
+
+model Alert {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String    // 'PRICE_ABOVE' | 'PRICE_BELOW' | 'ARB_ROI_ABOVE'
+  marketSlug  String
+  question    String    @default("")
+  exchange    String?
+  threshold   Float
+  currentValue Float?
+  status      String    @default("ACTIVE") // 'ACTIVE' | 'TRIGGERED' | 'DISABLED'
+  createdAt   DateTime  @default(now())
+  triggeredAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([marketSlug])
+}
